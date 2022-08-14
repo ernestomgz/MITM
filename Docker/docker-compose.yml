@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+
+    server:
+        container_name: server
+        image: panubo/vsftpd:v1.0.0
+        ports:
+            - "21:21"
+            - "4559-4564:4559-4564"
+        environment:
+            - FTP_USER=ftp
+            - FTP_PASSWORD=ftp
+        volumes:
+            - ./server:/srv
+
+    client:
+        container_name: client
+        image: jlesage/filezilla:v1.35.3
+        ports:
+            - "5800:5800"
+        volumes:
+            - ./filezilla:/storage:rw
+
+    attacker:
+        container_name: attacker
+        build: .
+        image: wshark
+        ports:
+            - "3000:3000"
+        cap_add:
+            - NET_RAW
+            - NET_ADMIN
+        volumes:
+            - ./src:/usr/src
