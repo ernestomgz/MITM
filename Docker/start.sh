@@ -3,7 +3,7 @@ if ! $(docker network ls | grep inquisitor); then
 fi
 
 echo "Name and IPs of containers:"
-docker network inspect inquisitor_default | grep -e IPv4 -e Name
+docker network inspect docker_default | grep -e IPv4 -e Name
 
 echo "Go to 'localhost:3000' to open wireshark"
 echo "Go to 'localhost:5800' to open ftp client:\n\thost: ip of server"
