@@ -7,102 +7,121 @@
 
 #include "packetManage.h"
 
-void my_packet_handler(
-    u_char *args,
-    const struct pcap_pkthdr *header,
-    const u_char *packet
-)
-{
-    /* First, lets make sure we have an IP packet */
+
+void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
+    // Castea el paquete a una estructura de tipo ethernet.
     struct ether_header *eth_header;
     eth_header = (struct ether_header *) packet;
+
+    // Comprobar si es un paquete IP
     if (ntohs(eth_header->ether_type) != ETHERTYPE_IP) {
         printf("Not an IP packet. Skipping...\n\n");
         return;
     }
 
-    /* The total packet length, including all headers
-       and the data payload is stored in
-        header->len
-        header->caplen
-       Caplen is the amount actually available, and len is the
-       total packet length even if it is larger
-       than what we currently have captured. If the snapshot
-       length set with pcap_open_live() is too small, you may
-       not have the whole packet. */
+    /*
+    La longitud total del paquete, incluyendo todos los encabezados
+    y el payload, se almacena en 'header->len', 'header->caplen'.
+
+    'caplen' es la cantidad realmente disponible, y 'len' es la longitud total
+    del paquete, incluso si es mayor que lo que se ha capturado actualmente.
+    
+    Si la longitud de la captura establecida con 'pcap_open_live()'
+    es demasiado pequeña, puede que no tenga la totalidad del paquete.
+    */
+
     printf("Total packet available: (%d/%d) bytes\n",header->len, header->caplen);
 
-    /* Pointers to start point of various headers */
+    // Punteros donde empiezan varias cabeceras
     const u_char *ip_header;
     const u_char *tcp_header;
     const u_char *payload;
 
-    /* Header lengths in bytes */
-    int ethernet_header_length = 14; /* Doesn't change */
+    // Longitud de las cabeceras (bytes)
+    int ethernet_header_length = 14;    // Constante
     int ip_header_length;
     int tcp_header_length;
     int payload_length;
+    
+    ip_header = packet + ethernet_header_length;    // Comienzo de la cabecera IP
 
-    /* Find start of IP header */
-    ip_header = packet + ethernet_header_length;
-    /* The second-half of the first byte in ip_header
-       contains the IP header length (IHL). */
+    /*
+    La segunda mitad del primer byte de 'ip_header'
+    contiene la longitud de la cabecera IP (IHL)
+    */
+
     ip_header_length = ((*ip_header) & 0x0F);
-    /* The IHL is number of 32-bit segments. Multiply
-       by four to get a byte count for pointer arithmetic */
+
+    /*
+    El IHL es el número de segmentos de 32 bits.
+    Multiplicarlo por 4 para obtener una cantidad
+    de bytes para el puntero aritmético.
+    */
+
     ip_header_length = ip_header_length * 4;
     
     print_packet_info(packet,*header);
-
     printf("IP header length (IHL) in bytes: %d\n", ip_header_length);
     
+    /*
+    Sabiendo dónde está la cabecera IP, se puede inspeccionar para obtener
+    el número de protocolo para comprobar que es TCP antes de continuar.
+    El protocolo siempre está en la posición #10 de la cabecera IP.
+    */
 
-    /* Now that we know where the IP header is, we can 
-       inspect the IP header for a protocol number to 
-       make sure it is TCP before going any further. 
-       Protocol is always the 10th byte of the IP header */
-    u_char protocol = *(ip_header + 9);
+    u_char protocol = *(ip_header + 9);     // Comienzo de la cabecera del protocolo
 
+    // Comprobar si es un paquete TCP
     if (protocol != IPPROTO_TCP) {
         printf("Not a TCP packet. Skipping...\n");
         return;
     }
 
+    /*
+    Agregar las longitudes de las cabeceras Ethernet e IP al comienzo
+    del paquete para encontrar el comienzo de la cabecera TCP.
+    */
+    
+    tcp_header = packet + ethernet_header_length + ip_header_length;    // Comienzo de la cabecera TCP
 
-    /* Add the ethernet and ip header length to the start of the packet
-       to find the beginning of the TCP header */
-    tcp_header = packet + ethernet_header_length + ip_header_length;
-    /* TCP header length is stored in the first half 
-       of the 12th byte in the TCP header. Because we only want
-       the value of the top half of the byte, we have to shift it
-       down to the bottom half otherwise it is using the most 
-       significant bits instead of the least significant bits */
+    /*
+    La longitud de la cabecera TCP se almacena en la primera mitad del byte 12 de la cabecera TCP.
+    Por lo tanto, si se quiere obtener el valor de la segunda mitad del byte, debe desplazarse a la
+    parte inferior del byte para que se use el valor más significativo (en lugar del menos significativo).
+    */
+
     tcp_header_length = ((*(tcp_header + 12)) & 0xF0) >> 4;
-    /* The TCP header length stored in those 4 bits represents
-       how many 32-bit words there are in the header, just like
-       the IP header length. We multiply by four again to get a
-       byte count. */
+
+    /*
+    La cabecera TCP almacenada en esos 4 bits representa cuántas palabras de 32-bits hay en la cabecera.
+    Al igual que con la longitud de la cabecera IP, multiplicar por 4 para obtener una cantidad de bytes.
+    */
+
     tcp_header_length = tcp_header_length * 4;
+
     printf("TCP header length in bytes: %d\n", tcp_header_length);
 
-    /* Add up all the header sizes to find the payload offset */
+    // Agregar todos los tamaños para encontrar el desplazamiento del payload
     int total_headers_size = ethernet_header_length+ip_header_length+tcp_header_length;
     printf("Size of all headers combined: %d bytes\n", total_headers_size);
-    payload_length = header->caplen -
-        (ethernet_header_length + ip_header_length + tcp_header_length);
+
+    payload_length = header->caplen - (ethernet_header_length + ip_header_length + tcp_header_length);
     printf("Payload size: %d bytes\n", payload_length);
+
     payload = packet + total_headers_size;
     printf("Memory address where payload begins: %p\n\n", payload);
 
-    /* Print payload in ASCII */
+    // Mostrar la carga (payload) en ASCII
     if (payload_length > 0) {
         const u_char *temp_pointer = payload;
         int byte_count = 0;
+
         while (byte_count++ < payload_length) {
             printf("%c", *temp_pointer);
             temp_pointer++;
         }
-        printf("\n");
+
+        printf("\n\n");
     }
 
     return;
@@ -110,10 +129,17 @@ void my_packet_handler(
 
 void print_packet_info(const u_char *packet, struct pcap_pkthdr packet_header) {
     printf("Packet total length %d\n", packet_header.len);
-    int ethernet_header_length = 14; // ethernet header is always length header
-    const u_char* ip_header = packet+ethernet_header_length;
-    u_char protocol = *(ip_header + 9);
-    printf("Packet type %02d\n", (unsigned int)protocol);//this will print a number that can be seen in https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
-                                         //if (protocol != IPPROTO_TCP) {}
 
+    int ethernet_header_length = 14;                            // Constante
+    const u_char* ip_header = packet+ethernet_header_length;    // Cabecera IP
+    u_char protocol = *(ip_header + 9);                         // Protocolo
+
+    /*
+    Lo siguiente mostrará un número que puede verse en:
+    https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+    */
+
+    printf("Packet type %02d\n\n", (unsigned int) protocol);
+    
+    //if (protocol != IPPROTO_TCP) {}
 }

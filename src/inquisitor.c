@@ -7,19 +7,12 @@
 
 #include "packetManage.h"
 
-void my_packet_handler(
-    u_char *args,
-    const struct pcap_pkthdr *header,
-    const u_char *packet
-);
-void print_packet_info(const u_char *packet, struct pcap_pkthdr packet_header);
-
 
 int main(int argc, char *argv[]) {
-    char error_buffer[PCAP_ERRBUF_SIZE]; //buffer to capture errors
-    int timeout_limit = 10000; /* In milliseconds */
-    int snapshot_length = 1024; /* how many bytes to capture*/
-    int total_packet_count = 200;
+    char error_buffer[PCAP_ERRBUF_SIZE];    // Buffer to capture errors
+    int timeout_limit = 10000;              // Timeout limit (in ms)
+    int snapshot_length = 1024;             // How many bytes to capture
+    int total_packet_count = 200;           // How many packets to capture
 
     /* automatically detects the device(eth0 or other) */
     char *device = pcap_lookupdev(error_buffer); 
@@ -38,11 +31,9 @@ int main(int argc, char *argv[]) {
         );
 
     if (handle == NULL) {
-         fprintf(stderr, "Could not open device %s: %s\n", device, error_buffer);
-         return 2;
+        fprintf(stderr, "Could not open device %s: %s\n", device, error_buffer);
+        return 2;
      }
-
-
 
     u_char *my_arguments=NULL;
 
