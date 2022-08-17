@@ -22,18 +22,17 @@ int main(int argc, char *argv[]) {
     }
 
     /* Open device for live capture */
-    pcap_t *handle = pcap_open_live(
-            device,
-            snapshot_length,
-            0,
-            timeout_limit,
-            error_buffer
-        );
+    pcap_t *handle = pcap_open_live(device,snapshot_length,0,timeout_limit,error_buffer);
 
     if (handle == NULL) {
         fprintf(stderr, "Could not open device %s: %s\n", device, error_buffer);
         return 2;
      }
+
+
+
+
+
 
     u_char *my_arguments=NULL;
 

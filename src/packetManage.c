@@ -1,11 +1,82 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <pcap.h>
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
 
 #include "packetManage.h"
+
+typedef struct TCP_packet{
+
+    struct pcap_pkthdr packet_header;
+    struct ether_header eth_header;
+
+    //all the headers in a tcp
+
+     u_char* packet;
+     u_char *ip_header; // packet + ethernet_header_length;     const u_char *tcp_header;
+     u_char *tcp_header; // packet + ethernet_header_length;     const u_char *tcp_header;
+     u_char *payload;
+     u_char *protocol; //in this program we are going to use only FTP and ARP
+
+    // Longitud de las cabeceras (bytes)
+    int ethernet_header_length;    // Constante
+    int ip_header_length;           // = 9
+    int tcp_header_length;          //=tcp_header_length * 4;
+    int payload_length;             //= 
+    int total_headers_size;         // = ethernet_header_length+ip_header_length+tcp_header_length;
+                                    //
+
+
+}TCP_packet;
+
+int TCP_packet_construct(TCP_packet* tcp,const u_char* packet, struct pcap_pkthdr packet_header){
+    //constante
+    tcp->ethernet_header_length=14;
+
+    tcp->packet_header=packet_header;
+
+    memcpy(tcp->packet,packet,strlen(packet));
+    struct ether_header* eth_header;
+    (struct ether_header *) packet;
+    tcp->eth_header = (struct ether_header *) packet;
+
+    //struct ether_header *eth_header;
+    //eth_header = (struct ether_header *) packet;
+
+    tcp.ip_header_length = ((*tcp.ip_header) & 0x0F);
+    tcp.ip_header_length = tcp.ip_header_length * 4;
+
+
+    u_char protocol = *(tcp.ip_header + 9);     // Comienzo de la cabecera del protocolo
+    sprintf(tcp.protocol,"%02d",(unsigned int)protocol);
+
+
+    tcp.tcp_header = tcp.packet + tcp.ethernet_header_length + tcp.ip_header_length;    // Comienzo de la cabecera TCP
+    tcp.tcp_header_length = ((*(tcp.tcp_header + 12)) & 0xF0) >> 4;
+    tcp.tcp_header_length = tcp.tcp_header_length * 4;
+    
+    tcp.total_headers_size=ethernet_header_length + ip_header_length + tcp_header_length;
+
+    tcp.payload_length = header->caplen - (tcp.total_headers_size);
+    tcp.payload = tcp.packet + tcp.total_headers_size;
+
+
+    // Comprobar si es un paquete IP
+    if (ntohs(eth_header->ether_type) != ETHERTYPE_IP) {
+        printf("Not an IP packet. Skipping...\n\n");
+        return -1;
+    }
+
+    
+    tcp.tcp_header_length = ((*(tcp_header + 12)) & 0xF0) >> 4;
+
+    tcp.ip_header = packet + ethernet_header_length;    // Comienzo de la cabecera IP
+    return ;
+}
+
 
 
 void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
@@ -42,8 +113,13 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
     int ip_header_length;
     int tcp_header_length;
     int payload_length;
+
+    TCP_packet tcp;
+
+    if(TCP_packet_construct(&tcp,packet,packet_header)==1){
+        return;
+    }
     
-    ip_header = packet + ethernet_header_length;    // Comienzo de la cabecera IP
 
     /*
     La segunda mitad del primer byte de 'ip_header'
@@ -112,6 +188,11 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
     printf("Memory address where payload begins: %p\n\n", payload);
 
     // Mostrar la carga (payload) en ASCII
+    return;
+}
+
+
+void printPayload(const u_char* payload, int payload_length){
     if (payload_length > 0) {
         const u_char *temp_pointer = payload;
         int byte_count = 0;
@@ -123,9 +204,8 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 
         printf("\n\n");
     }
-
-    return;
 }
+
 
 void print_packet_info(const u_char *packet, struct pcap_pkthdr packet_header) {
     printf("Packet total length %d\n", packet_header.len);
