@@ -9,6 +9,24 @@
 
 #include "packetManage.h"
 
+int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header,const u_char* packet){
+
+    
+
+    arp->eth_header= (struct etherhdr *) packet;
+
+    if(ntohs(arp->eth_header->ether_type)==ETHERTYPE_ARP){
+        printf("Not an ARP packet. Skipping...");
+        return -1;
+    }
+    arp->arp_packet= (struct ether_arp *) (packet + ETHER_ADDR_LEN+ETHER_ADDR_LEN+2);
+
+    return 0;
+
+
+
+}
+
 int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header,const u_char* packet){
     //constante
     tcp->packet_header=calloc(sizeof(struct pcap_pkthdr),1);

@@ -14,11 +14,18 @@
 void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 
     TCP_packet tcp;
+    ARP_packet arp;
 
-   if(TCP_packet_construct(&tcp,header,packet)==-1){
-        printf("error generating tcp packet");
+   if(ARP_packet_construct(&arp,header,packet)==-1){
+        printf("Error generating arp packet");
         return;
     }
+
+   if(TCP_packet_construct(&tcp,header,packet)==-1){
+        printf("Error generating tcp packet");
+        return;
+    }
+
 
     printf("\nthe payload is:");
     printPayload(tcp.payload,tcp.payload_length);

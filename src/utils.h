@@ -31,6 +31,16 @@ void print_packet_info(const u_char*, struct pcap_pkthdr);
  */
 void printPayload(const u_char* , int );
 
+/**
+ * @brief Envia una respuesta arp gratuita. Puede ser usado tanto de forma convencional como maliciosa.
+ * 
+ * @param[in] struct in_addr ip victima 1.
+ * @param[in] struct libnet_ether_addr mac victima 1
+ * @param[in] struct in_addr ip victima 2.
+ * @param[in] struct libnet_ether_addr mac victima 2
+ */
+int gratuitous_ARP(struct in_addr,struct libnet_ether_addr,struct in_addr,struct libnet_ether_addr);
+
 
 #endif
 

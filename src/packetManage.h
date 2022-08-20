@@ -27,6 +27,13 @@ typedef struct TCP_packet{
 
 }TCP_packet;
 
+typedef struct ARP_packet{
+    struct ether_header* eth_header; //= (struct etherhdr *) packet;
+    struct ether_arp *arp_packet;
+    
+
+}ARP_packet;
+
 
 /**
  * @brief Encuentra la carga (payload) de un paquete.
