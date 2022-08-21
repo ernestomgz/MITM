@@ -1,8 +1,6 @@
 #ifndef UTILS
 #define UTILS
 
-//#include "packetManage.h"
-
 
 /**
  * @brief Obtiene los distintos header de cada uno de los protocolos(ethernet, ip, tcp) ademas del payload.
@@ -15,6 +13,18 @@
  * @return Código de salida (0: correcto, -1: error).
  */
 int TCP_packet_construct(TCP_packet* ,const struct pcap_pkthdr* ,const u_char*);
+
+/**
+ * @brief Obtiene los distintos header de cada uno de los protocolos(ethernet, ip, tcp) ademas del payload.
+ *        Ademas ofrece la longitud de cada uno de lo headers de los protocolos. Muy util para imprimirlos.
+ *
+ * @param[in] TCP_packet*   Puntero a la estructura tcp creada.
+ * @param[in] pcap_pkthdr   Manejador del paquete.
+ * @param[in] packet   Array con todo el paquete.
+ * 
+ * @return Código de salida (0: correcto, -1: error).
+ */
+int ARP_packet_construct(ARP_packet* ,const struct pcap_pkthdr* ,const u_char*);
 
 /**
  * @brief Mostrar información de un paquete.
@@ -40,6 +50,9 @@ void printPayload(const u_char* , int );
  * @param[in] struct libnet_ether_addr mac victima 2
  */
 int gratuitous_ARP(struct in_addr,struct libnet_ether_addr,struct in_addr,struct libnet_ether_addr);
+
+void ARP_free(ARP_packet*);
+void TCP_free(TCP_packet*);
 
 
 #endif

@@ -3,8 +3,9 @@
 
 typedef struct TCP_packet{
 
-    struct pcap_pkthdr* packet_header;
-    struct ether_header* eth_header;
+    struct pcap_pkthdr* packet_header_t;
+    struct ether_header* eth_header_t;
+    struct tcphdr* tcp_header_t;
 
     //all the headers in a tcp
 
@@ -28,9 +29,8 @@ typedef struct TCP_packet{
 }TCP_packet;
 
 typedef struct ARP_packet{
-    struct ether_header* eth_header; //= (struct etherhdr *) packet;
-    struct ether_arp *arp_packet;
-    
+    struct ether_header* eth_header_t; 
+    struct ether_arp *arp_header_t;
 
 }ARP_packet;
 

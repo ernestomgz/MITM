@@ -12,46 +12,45 @@
 int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header,const u_char* packet){
 
     
+    arp->eth_header_t= (struct ether_header *) packet;
 
-    arp->eth_header= (struct etherhdr *) packet;
-
-    if(ntohs(arp->eth_header->ether_type)==ETHERTYPE_ARP){
-        printf("Not an ARP packet. Skipping...");
+    if(ntohs(arp->eth_header_t->ether_type)!=ETHERTYPE_ARP){
         return -1;
     }
-    arp->arp_packet= (struct ether_arp *) (packet + ETHER_ADDR_LEN+ETHER_ADDR_LEN+2);
+    arp->arp_header_t= (struct ether_arp *) (packet + ETHER_ADDR_LEN+ETHER_ADDR_LEN+2);
 
     return 0;
-
 
 
 }
 
 int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header,const u_char* packet){
-    //constante
-    tcp->packet_header=calloc(sizeof(struct pcap_pkthdr),1);
-    tcp->packet_header=packet_header;
+    tcp->packet_header_t=calloc(sizeof(struct pcap_pkthdr),1);
+    tcp->packet_header_t=packet_header;
 
+    //ethernet header is defined
     tcp->ethernet_header_length=14;
-    tcp->eth_header = (struct ether_header *) packet;
+    tcp->eth_header_t = (struct ether_header *) packet;
     tcp->ethernet_header=calloc(sizeof(u_char),tcp->ethernet_header_length);
     memcpy(tcp->ethernet_header,packet,tcp->ethernet_header_length);
 
-    // Comprobar si es un paquete IP
-    if (ntohs(tcp->eth_header->ether_type) != ETHERTYPE_IP) {
-        printf("Not an IP packet. Skipping...\n\n");
+    //from ethernet header we know if contains an ip header
+    if (ntohs(tcp->eth_header_t->ether_type) != ETHERTYPE_IP) {
+        //Not an IP packet, skiping
         return -1;
     }
 
+    // ip header is defined
     u_char *ip_header=packet+tcp->ethernet_header_length;
     tcp->ip_header_length = ((*ip_header ) & 0x0F);
     tcp->ip_header_length = tcp->ip_header_length * 4;
     tcp->ip_header=calloc(tcp->ip_header_length,sizeof(u_char));
     memcpy(tcp->ip_header,packet+tcp->ethernet_header_length,tcp->ip_header_length);
 
+    //from ip header we know if contains an tcp header
     tcp->protocol = *(tcp->ip_header + 9);     // Comienzo de la cabecera del protocolo
     if (tcp->protocol != IPPROTO_TCP) {
-        printf("Not a TCP packet(type:%02d). Skipping...\n",(unsigned int)tcp->protocol );
+        //not a tcp packet , skiping
         return -1;
     }
 
@@ -60,14 +59,15 @@ int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header
     tcp->tcp_header_length = tcp->tcp_header_length * 4;
     tcp->tcp_header=calloc(tcp->tcp_header_length,sizeof(u_char));
     memcpy(tcp->tcp_header,packet+tcp->ethernet_header_length+tcp->ip_header_length,tcp->tcp_header_length);
+    tcp->tcp_header_t = (struct tcphdr *) tcp->tcp_header;
 
+    // port is defined
     tcp->port = calloc(sizeof(u_char), 2);
     memcpy(tcp->port,tcp->tcp_header+2,2);
-    printf("the port is in hex %02x%02x",*tcp->port,*(tcp->port+1));
 
+    // because we know is a tcp packet, we obtain its payload
     tcp->total_headers_size=tcp->ethernet_header_length + tcp->ip_header_length + tcp->tcp_header_length;
-
-    tcp->payload_length = tcp->packet_header->caplen - (tcp->total_headers_size);
+    tcp->payload_length = tcp->packet_header_t->caplen - (tcp->total_headers_size);
     tcp->payload=calloc(tcp->payload_length,sizeof(u_char));
     memcpy(tcp->payload,packet+tcp->ethernet_header_length+tcp->ip_header_length+tcp->tcp_header_length,tcp->payload_length);
 
@@ -105,3 +105,19 @@ void print_packet_info(const u_char *packet, struct pcap_pkthdr packet_header) {
     //if (protocol != IPPROTO_TCP) {}
 }
 
+void ARP_free(ARP_packet* arp){
+    //free structures in arp 
+   
+    //struct ether_header* eth_header_t; 
+    //free(arp->arp_header_t);
+   free(arp);
+}
+void TCP_free(TCP_packet* tcp){
+    //free structures inee(tcp->ethernet_header);
+    free(tcp->ip_header);
+    free(tcp->tcp_header);
+    free(tcp->payload);
+    free(tcp->port);
+
+    free(tcp);
+}

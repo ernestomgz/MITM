@@ -12,9 +12,10 @@
 #include "targets.h"
 
 
-int main(int argc, char *argv[]) {
+
+int main(int argc,char *argv[]){
     char error_buffer[PCAP_ERRBUF_SIZE];    // Buffer to capture errors
-    int timeout_limit = 10000;              // Timeout limit (in ms)
+    int timeout_limit = 100;              // Timeout limit (in ms)
     int snapshot_length = 1024;             // How many bytes to capture
     int total_packet_count = 200;           // How many packets to capture
 
@@ -34,14 +35,19 @@ int main(int argc, char *argv[]) {
     /* Open device for live capture */
     pcap_t *handle = pcap_open_live(alldevs->name,snapshot_length,0,timeout_limit,error_buffer);
 
+
     libnet_t *l = libnet_init(LIBNET_LINK,alldevs->name,error_buffer);
 
     char errbuf[LIBNET_ERRBUF_SIZE];
+
+
 
     construct_targets(l,argc,argv);
 
 
     u_char *my_arguments=NULL;
+
+
 
     pcap_loop(handle, total_packet_count, my_packet_handler, my_arguments);
 
