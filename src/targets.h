@@ -9,5 +9,7 @@ extern struct libnet_ether_addr *mac_victim1;
 extern struct in_addr ip_victim2;
 extern struct libnet_ether_addr *mac_victim2;
 
+extern struct libnet_ether_addr *mac_bcast;
+
 void construct_targets(libnet_t*,int,char*[]);
 #endif
