@@ -51,6 +51,7 @@ void printPayload(const u_char* , int );
  */
 int gratuitous_ARP(struct in_addr,struct libnet_ether_addr,struct in_addr,struct libnet_ether_addr);
 
+//free arp and tcp packets
 void ARP_free(ARP_packet*);
 void TCP_free(TCP_packet*);
 

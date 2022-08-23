@@ -3,34 +3,36 @@
 
 typedef struct TCP_packet{
 
-    struct pcap_pkthdr* packet_header_t;
-    struct ether_header* eth_header_t;
-    struct tcphdr* tcp_header_t;
+	struct pcap_pkthdr* packet_header_t;
+	struct ether_header* eth_header_t;
+	struct tcphdr* tcp_header_t;
 
-    //all the headers in a tcp
+	//all the headers in a tcp
 
-     u_char* packet;
-     u_char* ethernet_header;
-     u_char *ip_header; // packet + ethernet_header_length;     const u_char *tcp_header;
-     u_char *tcp_header; // packet + ethernet_header_length;     const u_char *tcp_header;
-     u_char *payload;
-     u_char protocol; //in this program we are going to use only FTP and ARP
-     u_char *port;
+	u_char* packet;
+	u_char* ethernet_header;
+	u_char *ip_header; 
+	u_char *tcp_header; 
+	u_char *payload;
+	u_char protocol; 
+	u_char *port;
 
-    // Longitud de las cabeceras (bytes)
-    int ethernet_header_length;    // Constante
-    int ip_header_length;           // = 9
-    int tcp_header_length;          //=tcp_header_length * 4;
-    int payload_length;             //= 
-    int total_headers_size;         // = ethernet_header_length+ip_header_length+tcp_header_length;
-                                    //
+	// Headers length
+	int ethernet_header_length;    // Constante
+	int ip_header_length;           // = 9
+	int tcp_header_length;          //=*tcp_header_length * 4;
+	int payload_length;      
+	int total_headers_size;	//all headers-calen
+
 
 
 }TCP_packet;
 
 typedef struct ARP_packet{
-    struct ether_header* eth_header_t; 
-    struct ether_arp *arp_header_t;
+	//ethernet header struct
+	struct ether_header* eth_header_t; 
+	//arp header struct
+	struct ether_arp *arp_header_t;
 
 }ARP_packet;
 
