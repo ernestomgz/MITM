@@ -4,4 +4,5 @@
 **._*
 /filezilla/*
 /server/*
-.Makefile.swp
+*.swn
+*.swp
