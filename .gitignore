@@ -3,7 +3,8 @@
 **._*
 
 # Archivos auxiliares de IDEs
-.Makefile.swp
+*.swp
+*.swn
 **.vscode/*
 .idea
 cmake-build-debug
