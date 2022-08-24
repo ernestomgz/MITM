@@ -19,6 +19,10 @@
 
 void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 
+	extern struct libnet_ehter_addr* mac_victim1;
+	extern struct libnet_ehter_addr* mac_victim2;
+	extern struct libnet_ehter_addr* mac_attacker;
+
 	//ARP packet creation and allocation
 	ARP_packet *arp=malloc(sizeof(ARP_packet));
 	
@@ -27,6 +31,13 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 		printf("ARP packet detected\n");
 		//do thing with arp object
 		ARP_free(arp);
+
+		if(maccmp(mac_victim1,arp->source)==0){
+			printf("ip found 1\n");
+		}
+		if(maccmp(mac_victim2,arp->source)==0){
+			printf("ip found 2\n");
+		}
 		return;
 	}else
 		ARP_free(arp);
@@ -44,7 +55,7 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 			//spoof packet
 		}
 
-		
+
 		TCP_free(tcp);
 		return;
 	}else

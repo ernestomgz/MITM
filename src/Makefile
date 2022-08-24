@@ -5,9 +5,8 @@ DFLAGS=  -g -Wall -Werror
 all: $(DEPS)
 	clear
 	gcc $(DEPS) -o inquisitor $(FLAGS)
-	./inquisitor 1.1.1.1 aa:aa:aa:aa:aa:aa 2.2.2.2 bb:bb:bb:bb:bb:bb
+	./inquisitor 172.18.0.3 02:42:ac:12:00:03 172.18.0.4 02:42:ac:12:00:04
 d:
 	clear
-	
 	gcc $(DEPS) -o inquisitor $(FLAGS) $(DFLAGS)
-	./inquisitor 1.1.1.1 aa:aa:aa:aa:aa:aa 2.2.2.2 bb:bb:bb:bb:bb:bb
+	./inquisitor 172.18.0.3 02:42:ac:12:00:03 172.18.0.4 02:42:ac:12:00:04

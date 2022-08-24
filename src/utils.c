@@ -10,6 +10,21 @@
 
 #include "packetManage.h"
 
+
+
+int maccmp(struct libnet_ether_addr* mac1 , struct libnet_ether_addr* mac2){
+
+	int length=6;
+
+	while(length-- > 0){
+		if(*(mac1->ether_addr_octet + length)!=*(mac2->ether_addr_octet + length))
+			return -1;
+	}
+	return 0;
+
+}
+
+
 int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header,const u_char* packet){
     
 	//ther ARP packet starts with the ethernet header.
@@ -21,6 +36,9 @@ int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header
 
     //only for testing. must have its own function.
     struct libnet_ether_addr* mac_src= (arp->eth_header_t)->ether_shost;
+    //arp->source=calloc(sizeof(libnet_ether_addr),1);
+    arp->source=mac_src;
+    
     printf("MAC address source: %02X:%02X:%02X:%02X:%02X:%02X    ",\
 		    mac_src->ether_addr_octet[0],\
 		    mac_src->ether_addr_octet[1],\
@@ -30,6 +48,9 @@ int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header
 		    mac_src->ether_addr_octet[5]);
 
     struct libnet_ether_addr* mac_dst= (arp->eth_header_t)->ether_dhost;
+    //arp->destination=calloc(sizeof(libnet_ether_addr),1);
+    arp->destination=mac_dst;
+
     printf("MAC address destination: %02X:%02X:%02X:%02X:%02X:%02X\n",\
 		    mac_dst->ether_addr_octet[0],\
 		    mac_dst->ether_addr_octet[1],\
@@ -40,6 +61,9 @@ int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header
 
 	// the arp header is initialized
     arp->arp_header_t= (struct ether_arp *) (packet + ETHER_ADDR_LEN+ETHER_ADDR_LEN+2);
+
+
+
 
     return 0;
 

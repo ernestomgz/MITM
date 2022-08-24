@@ -31,6 +31,8 @@ typedef struct TCP_packet{
 typedef struct ARP_packet{
 	//ethernet header struct
 	struct ether_header* eth_header_t; 
+	struct libnet_ether_addr* source;
+	struct libnet_ether_addr* destination;
 	//arp header struct
 	struct ether_arp *arp_header_t;
 
