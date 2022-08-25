@@ -96,6 +96,60 @@ int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header
 	return 0;
 }
 
+
+/**
+ * @brief Constructs a gratuitous ARP packet with the given parameters.
+ *
+ * @param[in] ip_atk    The attacker IP address.
+ * @param[in] mac_atk   The attacker MAC address.
+ * @param[in] ip_fake   Spoofed IP address.
+ * @param[in] ip_trg    The target IP address.
+ * @param[in] mac_trg   The target MAC address.
+ * @param[in] ip_brd    The broadcast IP address.
+ * @param[in] l         The libnet context.
+ */
+void ARP_gratuitous_request(
+    struct in_addr* ip_atk,
+    struct libnet_ether_addr* mac_atk,
+    struct in_addr* ip_fake,
+    struct in_addr* ip_trg,
+    struct libnet_ether_addr* mac_trg,
+    struct in_addr* ip_brd,
+    libnet_t* l) {
+
+    // Allocate memory
+    u_int8_t* ip_attacker   = calloc(sizeof(u_int8_t), 4);
+    u_int8_t* mac_attacker  = calloc(sizeof(u_int8_t), 6);
+    u_int8_t* ip_spoof      = calloc(sizeof(u_int8_t), 4);
+    u_int8_t* ip_target     = calloc(sizeof(u_int8_t), 4);
+    u_int8_t* mac_target    = calloc(sizeof(u_int8_t), 6);
+    u_int8_t* ip_broadcast  = calloc(sizeof(u_int8_t), 6);
+
+    // Add values
+    ip_attacker     = (u_int8_t*) &(ip_atk -> s_addr);
+    mac_attacker    = (u_int8_t*) &(mac_atk -> ether_addr_octet);
+    ip_spoof        = (u_int8_t*) &(ip_fake -> s_addr);
+    ip_target       = (u_int8_t*) &(ip_trg -> s_addr);
+    mac_target      = (u_int8_t*) &(mac_trg -> ether_addr_octet);
+    ip_broadcast    = (u_int8_t*) &(ip_brd -> s_addr);
+
+    // Libnet autobuild
+
+    // Build ARP request
+    libnet_ptag_t arp = 0;
+    arp = libnet_autobuild_arp(ARPOP_REQUEST, mac_attacker, ip_attacker, ip_broadcast, ip_target, l);
+
+    // Build Ethernet header
+    libnet_ptag_t eth = 0;
+    eth = libnet_autobuild_ethernet(ip_broadcast, ETHERTYPE_ARP, l);
+
+    // Send packet
+    libnet_write(l);
+
+    // libnet_write(l);    // TODO: solve SEGMENTATION FAULT
+}
+
+
 void printPayload(const u_char* payload, int payload_length){
 	if (payload_length > 0) {
 		const u_char *temp_pointer = payload;
@@ -117,6 +171,7 @@ void ARP_free(ARP_packet* arp){
 	//arp struct is free
 	free(arp);
 }
+
 void TCP_free(TCP_packet* tcp){
 	//free structures allocated in memory
 	free(tcp->packet_header_t);

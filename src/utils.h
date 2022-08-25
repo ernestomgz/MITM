@@ -27,6 +27,18 @@ int TCP_packet_construct(TCP_packet* ,const struct pcap_pkthdr* ,const u_char*);
 int ARP_packet_construct(ARP_packet* ,const struct pcap_pkthdr* ,const u_char*);
 
 /**
+ * TODO
+ */
+ARP_gratuitous_request(
+        struct in_addr* ip_atk,
+        struct libnet_ether_addr* mac_atk,
+        struct in_addr* ip_fake,
+        struct in_addr* ip_trg,
+        struct libnet_ether_addr* mac_trg,
+        struct in_addr* ip_brd,
+        libnet_t* l);
+
+/**
  * @brief Mostrar información de un paquete.
  * 
  * @param[in] pcap_packet   Paquete.
