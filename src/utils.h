@@ -33,6 +33,13 @@ int ARP_packet_construct(ARP_packet* ,const struct pcap_pkthdr* ,const u_char*);
  */
 void print_packet_info(const u_char*, struct pcap_pkthdr);
 
+/**
+ * @brief compares two macs
+ *
+ * @param two macs in struct libnet_ether_addr
+ */
+int maccmp(struct libnet_ether_addr* , struct libnet_ether_addr* );
+
 
 /**
  * @brief Mostrar información de un paquete.
@@ -54,6 +61,10 @@ int gratuitous_ARP(struct in_addr,struct libnet_ether_addr,struct in_addr,struct
 //free arp and tcp packets
 void ARP_free(ARP_packet*);
 void TCP_free(TCP_packet*);
+
+//only testing
+//future arp sender
+void sendARP(struct libnet_ether_addr* ,struct in_addr  ,struct in_addr  ,struct libnet_ether_addr* ,libnet_t* );
 
 
 #endif

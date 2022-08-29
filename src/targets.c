@@ -8,15 +8,9 @@
 #include <libnet.h>
 #include <string.h>
 
+#include "targets.h"
 
-extern u_int32_t ip_addr;
-extern struct in_addr ip_attacker;
-extern struct libnet_ether_addr *mac_attacker;
-extern struct in_addr ip_victim1;
-extern struct libnet_ether_addr *mac_victim1;
-extern struct in_addr ip_victim2;
-extern struct libnet_ether_addr *mac_victim2;
-extern struct libnet_ether_addr *mac_bcast;
+u_int32_t ip_addr;
 
 int printIPandMAC(struct in_addr ip, struct libnet_ether_addr* mac){
 	if ( ip.s_addr != -1 )
@@ -82,7 +76,6 @@ void construct_targets(libnet_t *l ,int argc ,char *argv[]){
     mac_bcast=calloc(1,sizeof(struct libnet_ether_addr));
     memset(mac_bcast, 0xff, sizeof(mac_bcast));
     
-    return 0;
 }
 
 
