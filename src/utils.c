@@ -37,6 +37,7 @@ int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header
     // ARP packet type (1 request, 2 reply)
     arp->type = (packet[14] << 8) + packet[15];
 
+	printf("--- Arp packet detected ---\n");
     //only for testing. must have its own function.
 
     struct libnet_ether_addr* mac_src=calloc(sizeof(struct libnet_ether_addr),1);
@@ -143,6 +144,27 @@ void sendARP(struct libnet_ether_addr* macSend,struct in_addr ipSend ,struct in_
 	libnet_write (l);
 }
 
+
+void replyARP(struct libnet_ether_addr* macSend,struct in_addr ipSend ,struct in_addr ipSpoof ,struct libnet_ether_addr* macReplace,libnet_t* l){
+
+	LIBNET_API libnet_ptag_t arp = libnet_autobuild_arp (	ARPOP_REPLY,	/* OP: REPLY */
+			(u_int8_t *) macReplace->ether_addr_octet,	/* MAC address of device used */
+			(u_int8_t *) &(ipSpoof).s_addr,	/* IP to spoof */
+			(u_int8_t *) macSend->ether_addr_octet,	/* MAC of the target */
+			(u_int8_t *) &(ipSend).s_addr,	/* IP address of the target */
+			l);	/* libnet context */
+
+	LIBNET_API libnet_ptag_t eth = libnet_build_ethernet (	(u_int8_t *) &macSend->ether_addr_octet,	/* MAC address of the target */
+			(u_int8_t *) macReplace->ether_addr_octet,	/* MAC address of device used */
+			ETHERTYPE_ARP,		/* Ethertype ARP: 0x8006 */
+			NULL,			/* No payload */
+			0,			/* No payload */
+			l,			/* libnet context */
+			0);			/* No libnet protocol tag */
+
+	libnet_write (l);
+}
+
 //print payload from tcp packets
 void printPayload(const u_char* payload, int payload_length){
 	if (payload_length > 0) {
@@ -164,6 +186,7 @@ void ARP_free(ARP_packet* arp){
 
 	//arp struct is free
 	free(arp);
+	
 }
 
 void TCP_free(TCP_packet* tcp){

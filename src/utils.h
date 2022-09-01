@@ -74,9 +74,13 @@ int gratuitous_ARP(struct in_addr,struct libnet_ether_addr,struct in_addr,struct
 void ARP_free(ARP_packet*);
 void TCP_free(TCP_packet*);
 
-//only testing
-//future arp sender
+//sends an arp packet:
+//		      ↓ ↓ ↓ ↓ ↓ (destiny) ↓ ↓ ↓ ↓ ↓ ↓		 ↓ ↓ ↓ ↓ ↓ (how we want to be saved) ↓ ↓ ↓ ↓ ↓ ↓
 void sendARP(struct libnet_ether_addr* ,struct in_addr  ,struct in_addr  ,struct libnet_ether_addr* ,libnet_t* );
+
+//reply an arp packet:
+//		      ↓ ↓ ↓ ↓ ↓ (destiny) ↓ ↓ ↓ ↓ ↓ ↓		 ↓ ↓ ↓ ↓ ↓ (how we want to be saved) ↓ ↓ ↓ ↓ ↓ ↓
+void replyARP(struct libnet_ether_addr* ,struct in_addr  ,struct in_addr  ,struct libnet_ether_addr* ,libnet_t* );
 
 
 #endif
