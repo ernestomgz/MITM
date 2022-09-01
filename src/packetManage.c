@@ -43,7 +43,7 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 	}else
 		ARP_free(arp);
 
-	return; //TODO: delete 
+
 
 	//TCP packet creation and allocation
 	TCP_packet *tcp=malloc(sizeof(TCP_packet));
@@ -54,13 +54,15 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 		//only processing TCP of port 20 or 21 because are the ports used by FTP
 		if (ntohs(tcp->tcp_header_t->th_dport)==21||ntohs(tcp->tcp_header_t->th_dport)==20){
 			//spoof packet
+            printf("--------------- payload of tcp ----------------\n");
+            printPayload(tcp->payload,tcp->payload_length);
 		}
 
 
-		TCP_free(tcp);
+		//TCP_free(tcp);
 		return;
-	}else
-		TCP_free(tcp);
+	}//else
+		//TCP_free(tcp);
 	//printf("Error obtaining packet type\n");
 
 }
