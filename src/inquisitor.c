@@ -16,7 +16,6 @@
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
 #include <arpa/inet.h>
-#include <libnet.h>
 
 #include "packetManage.h"
 #include "utils.h"
