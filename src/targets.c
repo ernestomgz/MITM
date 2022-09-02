@@ -34,6 +34,7 @@ int printIPandMAC(struct in_addr ip, struct libnet_ether_addr* mac){
 //initialize IPs and MACs of attacker victim1 and victim2
 void construct_targets(libnet_t *l ,int argc ,char *argv[]){
 	//attacker IP and MAC addresses
+    printf("--- Attacker ---\n");
 	ip_addr = libnet_get_ipaddr4(l);
 	ip_attacker.s_addr=ip_addr;
 	mac_attacker= libnet_get_hwaddr(l);
@@ -46,6 +47,7 @@ void construct_targets(libnet_t *l ,int argc ,char *argv[]){
 	 *'sscanf' it's like an inverse 'printf' function: it parse a string and extract data from it.
 	 */
 
+    printf("--- Victim 1 ---\n");
     // victim1  IP and MAC addresses.
     ip_victim1.s_addr = inet_addr(argv[1]);
     
@@ -58,7 +60,7 @@ void construct_targets(libnet_t *l ,int argc ,char *argv[]){
 		fprintf(stderr, "Couldn't get own address: %s\n", libnet_geterror(l));
 
 
-    
+    printf("--- Victim 2 ---\n");
     // victim2  IP and MAC addresses.
     ip_victim2.s_addr = inet_addr(argv[3]);
 
@@ -75,7 +77,7 @@ void construct_targets(libnet_t *l ,int argc ,char *argv[]){
     // Broadcast MAC address.
     mac_bcast=calloc(1,sizeof(struct libnet_ether_addr));
     memset(mac_bcast, 0xff, sizeof(mac_bcast));
-    
+    printf("\n++++++++++++++++ Start capturing packets ++++++++++++++++\n\n");
 }
 
 
