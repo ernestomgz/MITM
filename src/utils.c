@@ -145,6 +145,8 @@ void sendARP(struct libnet_ether_addr* macSend,struct in_addr ipSend ,struct in_
 			0);			/* No libnet protocol tag */
 
 	libnet_write (l);
+    //clear context
+    libnet_clear_packet(l);
 }
 
 
@@ -166,6 +168,10 @@ void replyARP(struct libnet_ether_addr* macSend,struct in_addr ipSend ,struct in
 			0);			/* No libnet protocol tag */
 
 	libnet_write (l);
+    //clear context
+    libnet_clear_packet(l);
+
+
 }
 
 //print payload from tcp packets
