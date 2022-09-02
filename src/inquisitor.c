@@ -79,11 +79,9 @@ int main(int argc,char *argv[]){
     void signal_handler(int signum) {
 
         //pcap_breakloop(handle);
-
         sendARP(mac_victim1,ip_victim1,ip_victim2,mac_victim2,l);
         sendARP(mac_victim2,ip_victim2,ip_victim1,mac_victim2,l);
-
-        exit(0);
+        pcap_breakloop(handle);
     }
 
     signal(SIGINT, signal_handler);
@@ -103,13 +101,8 @@ int main(int argc,char *argv[]){
 
     libnet_destroy(l);
 
-    // TODO: liberar MACs de las víctimas alojadas como *
-
-
-
-
-    // Liberar el contexto
-    libnet_destroy(l);
+    free(mac_victim1);
+    free(mac_victim2);
 
 	return 0;
 }
