@@ -52,12 +52,38 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 
 	//Trying to convert packet into TCP
 	if(TCP_packet_construct(tcp,header,packet)!=-1){
-		printf("TCP packet detected in port %d\n",ntohs(tcp->tcp_header_t->th_dport));
+
+
+
 		//only processing TCP of port 20 or 21 because are the ports used by FTP
 		if (ntohs(tcp->tcp_header_t->th_dport)==21||ntohs(tcp->tcp_header_t->th_dport)==20){
-			//spoof packet
-            printf("--------------- payload of tcp ----------------\n");
-            printPayload(tcp->payload,tcp->payload_length);
+
+            //if payload start with USER
+            if(strncmp(tcp->payload,"USER",4)==0){
+                //if verbose is enabled print the payload
+                if(verbose==1) {
+                    printf("User name packet intercepted\n");
+                    printPayload(tcp->payload, tcp->payload_length);
+                }
+            }
+            //if payload start with PASS
+            if(strncmp(tcp->payload,"PASS",4)==0){
+                //if verbose is enabled print the payload
+                if(verbose==1){
+                    printf("Password packet intercepted\n");
+                    printPayload(tcp->payload, tcp->payload_length);
+                }
+            }
+
+            //if packet start with STOR
+            if(strncmp(tcp->payload,"STOR",4)==0){
+                //if verbose is enabled print the payload
+
+                printf("Transmision of packet intercepted\n");
+                printPayload(tcp->payload+4,tcp->payload_length-4);
+            }
+
+
 		}
 
 
