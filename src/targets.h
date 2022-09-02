@@ -14,6 +14,9 @@ extern struct libnet_ether_addr *mac_victim2;
 
 //broadcast
 extern struct libnet_ether_addr *mac_bcast;
+
+//verbose
+extern int verbose;
 /*
  * @brief prints ip and mac in console
  *

@@ -40,41 +40,36 @@ int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header
     // ARP packet type (1 request, 2 reply)
     arp->type = (packet[14] << 8) + packet[15];
 
-	printf("--- Arp packet detected ---\n");
     //only for testing. must have its own function.
 
     struct libnet_ether_addr* mac_src=calloc(sizeof(struct libnet_ether_addr),1);
     memcpy(mac_src->ether_addr_octet,arp->eth_header_t->ether_shost,6);
     arp->source=*mac_src;
 
-    printf("MAC address source: %02X:%02X:%02X:%02X:%02X:%02X    ",\
-		    mac_src->ether_addr_octet[0],\
-		    mac_src->ether_addr_octet[1],\
-		    mac_src->ether_addr_octet[2],\
-		    mac_src->ether_addr_octet[3],\
-		    mac_src->ether_addr_octet[4],\
-		    mac_src->ether_addr_octet[5]);
+//    printf("MAC address source: %02X:%02X:%02X:%02X:%02X:%02X    ",\
+//		    mac_src->ether_addr_octet[0],\
+//		    mac_src->ether_addr_octet[1],\
+//		    mac_src->ether_addr_octet[2],\
+//		    mac_src->ether_addr_octet[3],\
+//		    mac_src->ether_addr_octet[4],\
+//		    mac_src->ether_addr_octet[5]);
 
     struct libnet_ether_addr* mac_dst=calloc(sizeof(struct libnet_ether_addr),1);
     memcpy(mac_dst->ether_addr_octet,arp->eth_header_t->ether_dhost,6);
     arp->target=*mac_dst;
 
-    printf("MAC address destination: %02X:%02X:%02X:%02X:%02X:%02X\n",\
-		    mac_dst->ether_addr_octet[0],\
-		    mac_dst->ether_addr_octet[1],\
-		    mac_dst->ether_addr_octet[2],\
-		    mac_dst->ether_addr_octet[3],\
-		    mac_dst->ether_addr_octet[4],\
-		    mac_dst->ether_addr_octet[5]);
+//    printf("MAC address destination: %02X:%02X:%02X:%02X:%02X:%02X\n",\
+//		    mac_dst->ether_addr_octet[0],\
+//		    mac_dst->ether_addr_octet[1],\
+//		    mac_dst->ether_addr_octet[2],\
+//		    mac_dst->ether_addr_octet[3],\
+//		    mac_dst->ether_addr_octet[4],\
+//		    mac_dst->ether_addr_octet[5]);
 
     // the arp header is initialized
     arp->arp_header_t= (struct ether_arp *) (packet + ETHER_ADDR_LEN+ETHER_ADDR_LEN+2);
 
-
-
-
     return 0;
-
 }
 
 int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header,const u_char* packet){
@@ -106,7 +101,6 @@ int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header
 		//not a tcp packet , skiping
 		return -1;
 	}
-
 
 	tcp->tcp_header_length = ((*(packet + tcp->ethernet_header_length + tcp->ip_header_length + 12)) & 0xF0) >> 4;
 	tcp->tcp_header_length = tcp->tcp_header_length * 4;

