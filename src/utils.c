@@ -10,6 +10,9 @@
 
 #include "packetManage.h"
 
+// Variable externa 'verbose'
+extern int verbose;
+
 
 
 int maccmp(struct libnet_ether_addr* mac1 , struct libnet_ether_addr* mac2){

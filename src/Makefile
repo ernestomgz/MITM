@@ -2,6 +2,12 @@ all:
 	clear
 	gcc inquisitor.c packetManage.c utils.c targets.c -o inquisitor -lnet -lpcap -Wno-deprecated-declarations
 	./inquisitor 172.18.0.3 02:42:AC:12:00:03 172.18.0.4 02:42:ac:12:00:04
+
+v:
+	clear
+	gcc inquisitor.c packetManage.c utils.c targets.c -o inquisitor -lnet -lpcap -Wno-deprecated-declarations
+	./inquisitor 172.18.0.3 02:42:AC:12:00:03 172.18.0.4 02:42:ac:12:00:04 -v
+
 d:
 	clear
 	gcc inquisitor.c packetManage.c utils.c targets.c -o inquisitor -lnet -lpcap -Wno-deprecated-declarations -g

@@ -35,13 +35,19 @@ struct libnet_ether_addr *mac_victim2;
 //broadcast
 struct libnet_ether_addr *mac_bcast;
 
+// Verbose
+int verbose = 0;
+
 int main(int argc,char *argv[]){
-	// TODO: verbose mode ('-v')
 	// Check arguments cuantity.
-	if (argc != 5) {
-		printf("Usage: %s <Source IP> <Source MAC> <Destination IP> <Destination MAC>\n", argv[0]);
-		exit(0);
-	}
+	if (argc == 6 && strcmp(argv[5], "-v") == 0) {
+        printf("Verbose mode enabled.\n");
+        verbose = 1;
+    }else if (argc != 5 && strcmp(argv[5], "-v") != 0) {
+        printf("Usage: %s <Source IP> <Source MAC> <Destination IP> <Destination MAC> [-v]\n", argv[0]);
+        exit(0);
+    }
+
 	char error_buffer[PCAP_ERRBUF_SIZE];    // Buffer to capture errors for libpcap
 	char errbuf[LIBNET_ERRBUF_SIZE];       // Buffer to capture errors for libnet
                                            
@@ -53,8 +59,7 @@ int main(int argc,char *argv[]){
 
 	/* automatically detects the device(eth0 or other) */
 	pcap_if_t* alldevs;
-	int devStatus = pcap_findalldevs(&alldevs, error_buffer); 
-	printf("dev is : %s\n",alldevs->name);
+	int devStatus = pcap_findalldevs(&alldevs, error_buffer);
 
 	if (devStatus==-1) {
 		printf("Error finding device: %s\n", error_buffer);
