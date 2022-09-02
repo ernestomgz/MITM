@@ -13,6 +13,7 @@
 #include <time.h>
 #include <pcap.h>
 #include <libnet.h>
+#include <signal.h>
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
 #include <arpa/inet.h>
@@ -38,6 +39,13 @@ struct libnet_ether_addr *mac_bcast;
 // Verbose
 int verbose = 0;
 
+// Signal handler
+void signal_handler(int signum) {
+    printf("\n\nSignal %d received.\n", signum);
+    printf("Exiting...\n");
+    exit(0);
+}
+
 int main(int argc,char *argv[]){
 	// Check arguments cuantity.
 	if (argc == 6 && strcmp(argv[5], "-v") == 0) {
@@ -47,6 +55,7 @@ int main(int argc,char *argv[]){
         printf("Usage: %s <Source IP> <Source MAC> <Destination IP> <Destination MAC> [-v]\n", argv[0]);
         exit(0);
     }
+    signal(SIGINT, signal_handler);
 
 	char error_buffer[PCAP_ERRBUF_SIZE];    // Buffer to capture errors for libpcap
 	char errbuf[LIBNET_ERRBUF_SIZE];       // Buffer to capture errors for libnet
@@ -89,6 +98,16 @@ int main(int argc,char *argv[]){
 	pcap_freealldevs(alldevs);
 
     // TODO: liberar MACs de las víctimas alojadas como *
+
+    //creat sigint_handler
+
+    //if capture SIGINT and SIGTERM
+
+
+
+
+    // Liberar el contexto
+    libnet_destroy(l);
 
 	return 0;
 }
