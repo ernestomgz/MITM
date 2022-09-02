@@ -40,11 +40,6 @@ struct libnet_ether_addr *mac_bcast;
 int verbose = 0;
 
 // Signal handler
-void signal_handler(int signum) {
-    printf("\n\nSignal %d received.\n", signum);
-    printf("Exiting...\n");
-    exit(0);
-}
 
 int main(int argc,char *argv[]){
 	// Check arguments cuantity.
@@ -55,7 +50,6 @@ int main(int argc,char *argv[]){
         printf("Usage: %s <Source IP> <Source MAC> <Destination IP> <Destination MAC> [-v]\n", argv[0]);
         exit(0);
     }
-    signal(SIGINT, signal_handler);
 
 	char error_buffer[PCAP_ERRBUF_SIZE];    // Buffer to capture errors for libpcap
 	char errbuf[LIBNET_ERRBUF_SIZE];       // Buffer to capture errors for libnet
@@ -79,8 +73,21 @@ int main(int argc,char *argv[]){
 	/* Open device for live capture */
 	pcap_t *handle = pcap_open_live( alldevs->name ,snapshot_length,0,timeout_limit,error_buffer);
 
-	/* Create a contex for libnet */
-	libnet_t *l = libnet_init(LIBNET_LINK,alldevs->name,errbuf);
+    /* Create a contex for libnet */
+    libnet_t *l = libnet_init(LIBNET_LINK,alldevs->name,errbuf);
+
+    void signal_handler(int signum) {
+
+        //pcap_breakloop(handle);
+
+        sendARP(mac_victim1,ip_victim1,ip_victim2,mac_victim2,l);
+        sendARP(mac_victim2,ip_victim2,ip_victim1,mac_victim2,l);
+
+        exit(0);
+    }
+
+    signal(SIGINT, signal_handler);
+    //sorry if you have to read it. Follow me on git im sr galan
 
 	/* Initialize all targets */
 	construct_targets(l,argc,argv);
@@ -94,14 +101,9 @@ int main(int argc,char *argv[]){
 	printf("exited the loop");
 	pcap_close(handle);
 
-	/* free devices */
-	pcap_freealldevs(alldevs);
+    libnet_destroy(l);
 
     // TODO: liberar MACs de las víctimas alojadas como *
-
-    //creat sigint_handler
-
-    //if capture SIGINT and SIGTERM
 
 
 
