@@ -75,12 +75,18 @@ void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_c
                 }
             }
 
-            //if packet start with STOR
-            if(strncmp(tcp->payload,"STOR",4)==0){
+            //if packet start with STOR ('store' in server) or RETR ('retreive' from server)
+            if(strncmp(tcp->payload,"STOR",4)==0||strncmp(tcp->payload,"RETR",4)==0){
                 //if verbose is enabled print the payload
 
                 printf("Transmision of packet intercepted\n");
                 printPayload(tcp->payload+4,tcp->payload_length-4);
+                
+            //if packet start with GET (same as RETR, but more common/modern version)
+            } else if(strncmp(tcp->payload,"GET",3)==0) {
+            
+                printf("Transmision of packet intercepted\n");
+                printPayload(tcp->payload+3,tcp->payload_length-3);
             }
 
 
