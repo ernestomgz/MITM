@@ -10,40 +10,66 @@
 
 #include "packetManage.h"
 
+// Variable externa 'verbose'
+extern int verbose;
+
+
+
+int maccmp(struct libnet_ether_addr* mac1 , struct libnet_ether_addr* mac2){
+
+	int length=6;
+	
+	while(length-- > 0){
+		if(*(mac1->ether_addr_octet + length)!=*(mac2->ether_addr_octet + length))
+			return -1;
+	}
+	return 0;
+
+}
+
+
 int ARP_packet_construct(ARP_packet* arp,const struct pcap_pkthdr* packet_header,const u_char* packet){
-    
-	//ther ARP packet starts with the ethernet header.
-	//here is initialized
+
+    //ther ARP packet starts with the ethernet header.
+    //here is initialized
     arp->eth_header_t= (struct ether_header *) packet;
     if(ntohs(arp->eth_header_t->ether_type)!=ETHERTYPE_ARP){
-	    return -1;
+        return -1;
     }
 
+    // ARP packet type (1 request, 2 reply)
+    arp->type = (packet[14] << 8) + packet[15];
+
     //only for testing. must have its own function.
-    struct libnet_ether_addr* mac_src= (arp->eth_header_t)->ether_shost;
-    printf("MAC address source: %02X:%02X:%02X:%02X:%02X:%02X    ",\
-		    mac_src->ether_addr_octet[0],\
-		    mac_src->ether_addr_octet[1],\
-		    mac_src->ether_addr_octet[2],\
-		    mac_src->ether_addr_octet[3],\
-		    mac_src->ether_addr_octet[4],\
-		    mac_src->ether_addr_octet[5]);
 
-    struct libnet_ether_addr* mac_dst= (arp->eth_header_t)->ether_dhost;
-    printf("MAC address destination: %02X:%02X:%02X:%02X:%02X:%02X\n",\
-		    mac_dst->ether_addr_octet[0],\
-		    mac_dst->ether_addr_octet[1],\
-		    mac_dst->ether_addr_octet[2],\
-		    mac_dst->ether_addr_octet[3],\
-		    mac_dst->ether_addr_octet[4],\
-		    mac_dst->ether_addr_octet[5]);
+    struct libnet_ether_addr* mac_src=calloc(sizeof(struct libnet_ether_addr),1);
+    memcpy(mac_src->ether_addr_octet,arp->eth_header_t->ether_shost,6);
+    arp->source=*mac_src;
 
-	// the arp header is initialized
+//    printf("MAC address source: %02X:%02X:%02X:%02X:%02X:%02X    ",\
+//		    mac_src->ether_addr_octet[0],\
+//		    mac_src->ether_addr_octet[1],\
+//		    mac_src->ether_addr_octet[2],\
+//		    mac_src->ether_addr_octet[3],\
+//		    mac_src->ether_addr_octet[4],\
+//		    mac_src->ether_addr_octet[5]);
+
+    struct libnet_ether_addr* mac_dst=calloc(sizeof(struct libnet_ether_addr),1);
+    memcpy(mac_dst->ether_addr_octet,arp->eth_header_t->ether_dhost,6);
+    arp->target=*mac_dst;
+
+//    printf("MAC address destination: %02X:%02X:%02X:%02X:%02X:%02X\n",\
+//		    mac_dst->ether_addr_octet[0],\
+//		    mac_dst->ether_addr_octet[1],\
+//		    mac_dst->ether_addr_octet[2],\
+//		    mac_dst->ether_addr_octet[3],\
+//		    mac_dst->ether_addr_octet[4],\
+//		    mac_dst->ether_addr_octet[5]);
+
+    // the arp header is initialized
     arp->arp_header_t= (struct ether_arp *) (packet + ETHER_ADDR_LEN+ETHER_ADDR_LEN+2);
 
     return 0;
-
-
 }
 
 int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header,const u_char* packet){
@@ -76,7 +102,6 @@ int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header
 		return -1;
 	}
 
-
 	tcp->tcp_header_length = ((*(packet + tcp->ethernet_header_length + tcp->ip_header_length + 12)) & 0xF0) >> 4;
 	tcp->tcp_header_length = tcp->tcp_header_length * 4;
 	tcp->tcp_header=calloc(tcp->tcp_header_length,sizeof(u_char));
@@ -96,6 +121,54 @@ int TCP_packet_construct(TCP_packet* tcp,const struct pcap_pkthdr* packet_header
 	return 0;
 }
 
+void sendARP(struct libnet_ether_addr* macSend,struct in_addr ipSend ,struct in_addr ipSpoof ,struct libnet_ether_addr* macReplace,libnet_t* l){
+
+	LIBNET_API libnet_ptag_t arp = libnet_autobuild_arp (	ARPOP_REQUEST,	/* OP: REPLY */
+			(u_int8_t *) macReplace->ether_addr_octet,	/* MAC address of device used */
+			(u_int8_t *) &(ipSpoof).s_addr,	/* IP to spoof */
+			(u_int8_t *) macSend->ether_addr_octet,	/* MAC of the target */
+			(u_int8_t *) &(ipSend).s_addr,	/* IP address of the target */
+			l);	/* libnet context */
+
+	LIBNET_API libnet_ptag_t eth = libnet_build_ethernet (	(u_int8_t *) &macSend->ether_addr_octet,	/* MAC address of the target */
+			(u_int8_t *) macReplace->ether_addr_octet,	/* MAC address of device used */
+			ETHERTYPE_ARP,		/* Ethertype ARP: 0x8006 */
+			NULL,			/* No payload */
+			0,			/* No payload */
+			l,			/* libnet context */
+			0);			/* No libnet protocol tag */
+
+	libnet_write (l);
+    //clear context
+    libnet_clear_packet(l);
+}
+
+
+void replyARP(struct libnet_ether_addr* macSend,struct in_addr ipSend ,struct in_addr ipSpoof ,struct libnet_ether_addr* macReplace,libnet_t* l){
+
+	LIBNET_API libnet_ptag_t arp = libnet_autobuild_arp (	ARPOP_REPLY,	/* OP: REPLY */
+			(u_int8_t *) macReplace->ether_addr_octet,	/* MAC address of device used */
+			(u_int8_t *) &(ipSpoof).s_addr,	/* IP to spoof */
+			(u_int8_t *) macSend->ether_addr_octet,	/* MAC of the target */
+			(u_int8_t *) &(ipSend).s_addr,	/* IP address of the target */
+			l);	/* libnet context */
+
+	LIBNET_API libnet_ptag_t eth = libnet_build_ethernet (	(u_int8_t *) &macSend->ether_addr_octet,	/* MAC address of the target */
+			(u_int8_t *) macReplace->ether_addr_octet,	/* MAC address of device used */
+			ETHERTYPE_ARP,		/* Ethertype ARP: 0x8006 */
+			NULL,			/* No payload */
+			0,			/* No payload */
+			l,			/* libnet context */
+			0);			/* No libnet protocol tag */
+
+	libnet_write (l);
+    //clear context
+    libnet_clear_packet(l);
+
+
+}
+
+//print payload from tcp packets
 void printPayload(const u_char* payload, int payload_length){
 	if (payload_length > 0) {
 		const u_char *temp_pointer = payload;
@@ -116,7 +189,9 @@ void ARP_free(ARP_packet* arp){
 
 	//arp struct is free
 	free(arp);
+	
 }
+
 void TCP_free(TCP_packet* tcp){
 	//free structures allocated in memory
 	free(tcp->packet_header_t);

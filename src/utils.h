@@ -27,11 +27,30 @@ int TCP_packet_construct(TCP_packet* ,const struct pcap_pkthdr* ,const u_char*);
 int ARP_packet_construct(ARP_packet* ,const struct pcap_pkthdr* ,const u_char*);
 
 /**
+ * TODO
+ */
+ARP_gratuitous_request(
+        struct in_addr* ip_atk,
+        struct libnet_ether_addr* mac_atk,
+        struct in_addr* ip_fake,
+        struct in_addr* ip_trg,
+        struct libnet_ether_addr* mac_trg,
+        struct in_addr* ip_brd,
+        libnet_t* l);
+
+/**
  * @brief Mostrar información de un paquete.
  * 
  * @param[in] pcap_packet   Paquete.
  */
 void print_packet_info(const u_char*, struct pcap_pkthdr);
+
+/**
+ * @brief compares two macs
+ *
+ * @param two macs in struct libnet_ether_addr
+ */
+int maccmp(struct libnet_ether_addr* , struct libnet_ether_addr* );
 
 
 /**
@@ -54,6 +73,14 @@ int gratuitous_ARP(struct in_addr,struct libnet_ether_addr,struct in_addr,struct
 //free arp and tcp packets
 void ARP_free(ARP_packet*);
 void TCP_free(TCP_packet*);
+
+//sends an arp packet:
+//		      ↓ ↓ ↓ ↓ ↓ (destiny) ↓ ↓ ↓ ↓ ↓ ↓		 ↓ ↓ ↓ ↓ ↓ (how we want to be saved) ↓ ↓ ↓ ↓ ↓ ↓
+void sendARP(struct libnet_ether_addr* ,struct in_addr  ,struct in_addr  ,struct libnet_ether_addr* ,libnet_t* );
+
+//reply an arp packet:
+//		      ↓ ↓ ↓ ↓ ↓ (destiny) ↓ ↓ ↓ ↓ ↓ ↓		 ↓ ↓ ↓ ↓ ↓ (how we want to be saved) ↓ ↓ ↓ ↓ ↓ ↓
+void replyARP(struct libnet_ether_addr* ,struct in_addr  ,struct in_addr  ,struct libnet_ether_addr* ,libnet_t* );
 
 
 #endif

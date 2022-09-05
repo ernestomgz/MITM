@@ -1,22 +1,22 @@
 #ifndef TARGETS
 #define TARGETS
 
-//IP and MAC from attacker
-u_int32_t ip_addr;
-struct in_addr ip_attacker;
-struct libnet_ether_addr *mac_attacker;
+extern struct in_addr ip_attacker;
+extern struct libnet_ether_addr *mac_attacker;
 
 //IP and MAC from victim1
-struct in_addr ip_victim1;
-struct libnet_ether_addr *mac_victim1;
+extern struct in_addr ip_victim1;
+extern struct libnet_ether_addr *mac_victim1;
 
 //IP and MAC from victim2
-struct in_addr ip_victim2;
-struct libnet_ether_addr *mac_victim2;
+extern struct in_addr ip_victim2;
+extern struct libnet_ether_addr *mac_victim2;
 
 //broadcast
-struct libnet_ether_addr *mac_bcast;
+extern struct libnet_ether_addr *mac_bcast;
 
+//verbose
+extern int verbose;
 /*
  * @brief prints ip and mac in console
  *
@@ -25,7 +25,7 @@ struct libnet_ether_addr *mac_bcast;
  *
  * @return 0 correct or 1 error that can be read from pcap error buffer
  */
-int printIPandMAC(struct in_addr ip, struct libnet_ether_addr* mac);
+int printIPandMAC(struct in_addr, struct libnet_ether_addr*);
 
 /*
  * @brief initialize attacker and victims MAC and IP

@@ -1,8 +1,16 @@
+# Archivos generados en Mac
 **DS_Store*
-**/.vscode/*
-**.out*
 **._*
+
+# Archivos auxiliares de IDEs
+*.swp
+*.swn
+**.vscode/*
+.idea
+cmake-build-debug
+CMakeLists.txt
+**.out
+
+# Archivos de los contenedores
 /filezilla/*
 /server/*
-*.swn
-*.swp

